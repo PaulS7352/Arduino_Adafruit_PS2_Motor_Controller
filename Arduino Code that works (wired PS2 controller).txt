@@ -1,0 +1,132 @@
+
+
+
+#include <Adafruit_MotorShield.h>
+
+Adafruit_MotorShield AFMStop(0x61); // Rightmost jumper closed
+Adafruit_MotorShield AFMSbot(0x60); // Default address, no jumpers
+
+// And a DC Motor to port M1
+Adafruit_DCMotor *leftMotor = AFMStop.getMotor(4); 
+Adafruit_DCMotor *rightMotor = AFMStop.getMotor(1);
+Adafruit_DCMotor *boostMotor = AFMSbot.getMotor(1); 
+Adafruit_DCMotor *vertMotor = AFMSbot.getMotor(4);
+
+#include <SoftwareSerial.h>
+#include <Cytron_PS2Shield.h>
+
+Cytron_PS2Shield ps2(2, 3); // SoftwareSerial: Rx and Tx pin
+//Cytron_ps2Shield ps2; // HardwareSerial, note: 
+
+
+
+#define LEDPIN  13
+
+void setup() {
+
+
+ AFMSbot.begin(); // Start the bottom shield
+ AFMStop.begin(); // Start the top shield
+  leftMotor->setSpeed(255);
+  leftMotor->run(RELEASE);
+  rightMotor->setSpeed(255);
+  rightMotor->run(RELEASE);
+  vertMotor->setSpeed(255);
+  vertMotor->run(RELEASE);
+  boostMotor->setSpeed(255);
+  boostMotor->run(RELEASE);
+
+  ps2.begin(9600); // This baudrate must same with the jumper setting at ps2 shield
+  Serial.begin(9600);//  seial monitor initialized 
+
+  pinMode(LEDPIN, OUTPUT);
+  digitalWrite(LEDPIN, LOW);
+}
+
+void loop() {
+
+if(ps2.readButton(PS2_JOYSTICK_LEFT_Y_AXIS) > 204){
+      leftMotor->run(BACKWARD);
+      leftMotor->setSpeed(255);
+    }
+    else
+    if(ps2.readButton(PS2_JOYSTICK_LEFT_Y_AXIS) > 153 and ps2.readButton(PS2_JOYSTICK_LEFT_Y_AXIS) < 204){
+      leftMotor->run(BACKWARD);
+      leftMotor->setSpeed(155);
+    }
+    else
+    if(ps2.readButton(PS2_JOYSTICK_LEFT_Y_AXIS) > 102 and ps2.readButton(PS2_JOYSTICK_LEFT_Y_AXIS) < 153){
+       leftMotor->run(RELEASE);
+
+
+    }
+    else
+    if(ps2.readButton(PS2_JOYSTICK_LEFT_Y_AXIS) > 51 and ps2.readButton(PS2_JOYSTICK_LEFT_Y_AXIS) < 102){
+      leftMotor->run(FORWARD);
+      leftMotor->setSpeed(155);
+    }
+    else
+    if(ps2.readButton(PS2_JOYSTICK_LEFT_Y_AXIS) > -1 and ps2.readButton(PS2_JOYSTICK_LEFT_Y_AXIS) < 51){
+      leftMotor->run(FORWARD);
+      leftMotor->setSpeed(255);
+    }
+
+if(ps2.readButton(PS2_JOYSTICK_RIGHT_Y_AXIS) > 204){
+      rightMotor->run(BACKWARD);
+      rightMotor->setSpeed(255);
+    }
+    else
+    if(ps2.readButton(PS2_JOYSTICK_RIGHT_Y_AXIS) > 153 and ps2.readButton(PS2_JOYSTICK_RIGHT_Y_AXIS) < 204){
+      rightMotor->run(BACKWARD);
+      rightMotor->setSpeed(155);
+    }
+    else
+    if(ps2.readButton(PS2_JOYSTICK_RIGHT_Y_AXIS) > 102 and ps2.readButton(PS2_JOYSTICK_RIGHT_Y_AXIS) < 153){
+       rightMotor->run(RELEASE);
+
+
+    }
+    else
+    if(ps2.readButton(PS2_JOYSTICK_RIGHT_Y_AXIS) > 51 and ps2.readButton(PS2_JOYSTICK_RIGHT_Y_AXIS) < 102){
+      rightMotor->run(FORWARD);
+      rightMotor->setSpeed(155);
+    }
+    else
+    if(ps2.readButton(PS2_JOYSTICK_RIGHT_Y_AXIS) > -1 and ps2.readButton(PS2_JOYSTICK_RIGHT_Y_AXIS) < 51){
+      rightMotor->run(FORWARD);
+      rightMotor->setSpeed(255);
+    }
+    if(ps2.readButton(PS2_LEFT_1) == 0){
+      vertMotor->run(FORWARD);
+      vertMotor->setSpeed(255);
+    }
+    else
+    {
+      vertMotor->run(RELEASE);
+    if(ps2.readButton(PS2_RIGHT_1) == 0){
+      vertMotor->run(BACKWARD);
+      vertMotor->setSpeed(255);
+    }
+    else
+    {
+      vertMotor->run(RELEASE);
+    }
+
+    }
+    if(ps2.readButton(PS2_RIGHT_2) == 0){
+    boostMotor->run(FORWARD);
+    boostMotor->setSpeed(255);
+    }
+    else
+    if(ps2.readButton(PS2_LEFT_2) == 0 ){
+     boostMotor->run(BACKWARD);
+     boostMotor->setSpeed(255);
+    }
+    else
+    {
+     boostMotor->run(RELEASE);
+    }
+  Serial.println(ps2.readButton(PS2_JOYSTICK_LEFT_Y_AXIS));
+  Serial.println(ps2.readButton(PS2_JOYSTICK_RIGHT_Y_AXIS));
+
+} 

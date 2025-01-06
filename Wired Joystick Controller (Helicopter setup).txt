@@ -1,0 +1,193 @@
+/* 
+This is a test sketch for the Adafruit assembled Motor Shield for Arduino v2
+It won't work with v1.x motor shields! Only for the v2's with built in PWM
+control
+
+For use with the Adafruit Motor Shield v2 
+---->  http://www.adafruit.com/products/1438
+*/
+char Incoming_value = 0;
+#include <Wire.h>
+#include <Adafruit_MotorShield.h>
+
+Adafruit_MotorShield AFMStop(0x61); // Rightmost jumper closed
+Adafruit_MotorShield AFMSbot(0x60); // Default address, no jumpers
+
+// And a DC Motor to port M1
+Adafruit_DCMotor *leftMotor = AFMStop.getMotor(1);
+Adafruit_DCMotor *rightMotor = AFMStop.getMotor(2);
+Adafruit_DCMotor *vertMotor = AFMSbot.getMotor(1);
+Adafruit_DCMotor *boostMotor = AFMSbot.getMotor(4);
+
+
+  int Xpin=A0;
+  int Ypin=A1;
+  int Spin=2;
+  int Xval;
+  int Yval;
+  int Sval;
+  int Xpin2=A2;
+  int Ypin2=A3;
+  int Xval2;
+  int Yval2;
+
+void setup() {
+  while (!Serial);
+  Serial.begin(9600);           // set up Serial library at 9600 bps
+  Serial.println("MMMMotor party!");
+
+  AFMSbot.begin(); // Start the bottom shield
+  AFMStop.begin(); // Start the top shield
+
+  pinMode(Xpin,INPUT);
+  pinMode(Ypin,INPUT);
+  pinMode(Spin,INPUT);
+  pinMode(Xpin2,INPUT);
+  pinMode(Ypin2,INPUT);
+  digitalWrite(Spin,HIGH);
+  // turn on the DC motor
+  leftMotor->setSpeed(255);
+  leftMotor->run(RELEASE);
+  rightMotor->setSpeed(255);
+  rightMotor->run(RELEASE);
+  vertMotor->setSpeed(255);
+  vertMotor->run(RELEASE);
+  boostMotor->setSpeed(255);
+  boostMotor->run(RELEASE);
+}
+
+int i;
+void loop() {
+Incoming_value = Serial.read();      
+Serial.print(Incoming_value);        
+Serial.print("\n");
+Xval=analogRead(Xpin);
+Yval=analogRead(Ypin);
+Xval2=analogRead(Xpin2);
+Yval2=analogRead(Ypin2);
+Sval=digitalRead(Spin);
+Serial.print("Xval = ");
+Serial.print(Xval);
+Serial.print(" Yval = ");
+Serial.print(Yval);
+Serial.print("Xval2 = ");
+Serial.print(Xval2);
+Serial.print(" Yval2 = ");
+Serial.print(Yval2);
+Serial.print(" Switch State is ");
+Serial.println(Sval);
+
+  
+ if(Yval > 682 and Xval > 682)   {        //upper right quadarnt 
+      leftMotor->run(FORWARD);
+      leftMotor->setSpeed(255);
+      rightMotor->run(FORWARD); 
+      rightMotor->setSpeed(100);    //can change speeds
+      
+ }
+ 
+      else
+      if(Yval > 682 and Yval < 852.5 and Xval > 341 and Xval < 682 ){      //Upper Midddle Quadrant (half speed)
+        leftMotor->run(FORWARD);
+        leftMotor->setSpeed(155);
+        rightMotor->run(FORWARD);      
+        rightMotor->setSpeed(155);
+
+      }
+
+      else
+      if(Yval < 1024 and Yval > 852.5 and Xval > 341 and Xval < 682 ){      //Upper Midddle Quadrant (full speed)
+        leftMotor->run(FORWARD);
+        leftMotor->setSpeed(255);
+        rightMotor->run(FORWARD);      
+        rightMotor->setSpeed(255);
+        boostMotor->run(FORWARD);
+        boostMotor->setSpeed(255);
+      }
+      
+      else
+      if(Yval > 682 and Xval < 341){          //Upper Left Quadrant
+        leftMotor->run(FORWARD);
+        leftMotor->setSpeed(100);
+        rightMotor->run(FORWARD);
+        rightMotor->setSpeed(255);
+
+      }
+      
+      else
+      if(Xval > 682 and Yval > 341 and Yval < 682)   {   //RIght Quadrant
+       leftMotor->run(FORWARD);
+       leftMotor->setSpeed(255);
+       rightMotor->run(BACKWARD);
+       rightMotor->setSpeed(255);
+       
+      }
+ 
+      else
+      if(Xval > 341 and Xval < 682 and Yval > 341 and Yval < 682){   //Middle Quadrant
+        leftMotor->run(RELEASE);
+        rightMotor->run(RELEASE);
+        boostMotor->run(RELEASE);
+        
+      }
+      
+       else
+       if (Xval < 361 and Yval > 341 and Yval < 682){ //Left Quadrant
+       rightMotor->run(FORWARD);
+       rightMotor->setSpeed(255);
+       leftMotor->run(BACKWARD);
+       leftMotor->setSpeed(255);;
+       
+       }
+      else
+      if(Yval < 341 and Xval > 682)   {        //Bottom right quadarnt 
+      leftMotor->run(BACKWARD);
+      leftMotor->setSpeed(255);
+      rightMotor->run(BACKWARD); 
+      rightMotor->setSpeed(100);    //can change speeds
+      
+ }
+ 
+      else
+      if(Yval < 170.5 and Yval > -1 and Xval > 341 and Xval < 682 ){      //Bottom Midddle Quadrant (full speed)
+        leftMotor->run(BACKWARD);
+        leftMotor->setSpeed(255);
+        rightMotor->run(BACKWARD);      
+        rightMotor->setSpeed(255);
+        boostMotor->run(BACKWARD);
+        boostMotor->setSpeed(255);
+
+      }
+            else
+      if(Yval < 341 and Yval > 170.5 and Xval > 341 and Xval < 682 ){      //Bottom Midddle Quadrant (half speed)
+        leftMotor->run(BACKWARD);
+        leftMotor->setSpeed(155);
+        rightMotor->run(BACKWARD);      
+        rightMotor->setSpeed(155);
+
+      }
+      
+      else
+      if(Yval < 341 and Xval < 341){          //Bottom Left Quadrant
+        leftMotor->run(BACKWARD);
+        leftMotor->setSpeed(100);
+        rightMotor->run(BACKWARD);
+        rightMotor->setSpeed(255);
+      }
+      if(Yval2 > 682){
+      vertMotor->run(FORWARD);
+      vertMotor->setSpeed(255);
+      }
+      else
+      if(Yval2 < 341){
+        vertMotor->run(BACKWARD);
+        vertMotor->setSpeed(255);
+      }
+      else 
+      if(Yval < 682 and Yval > 341){
+        vertMotor->run(RELEASE);
+        
+      }
+
+\\boostMotor->run(FORWARD);
+}

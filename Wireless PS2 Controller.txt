@@ -1,0 +1,221 @@
+#include <PS2X_lib.h>   
+
+PS2X ps2x; 
+#include <Adafruit_MotorShield.h>
+
+Adafruit_MotorShield AFMStop(0x61); // Rightmost jumper closed
+Adafruit_MotorShield AFMSbot(0x60); // Default address, no jumpers
+
+// And a DC Motor to port M1
+Adafruit_DCMotor *leftMotor = AFMStop.getMotor(4);
+Adafruit_DCMotor *rightMotor = AFMStop.getMotor(1);
+Adafruit_DCMotor *boostMotor = AFMSbot.getMotor(3);
+Adafruit_DCMotor *vertMotor = AFMSbot.getMotor(4);
+
+
+//right now, the library does NOT support hot-pluggable controllers, meaning 
+//you must always either restart your Arduino after you connect the controller, 
+//or call config_gamepad(pins) again after connecting the controller.
+
+int error = 0; 
+byte type = 0;
+byte vibrate = 0;
+
+void setup(){
+ Serial.begin(9600);
+ AFMSbot.begin(); // Start the bottom shield
+ AFMStop.begin(); // Start the top shield
+   leftMotor->setSpeed(255);
+  leftMotor->run(RELEASE);
+  rightMotor->setSpeed(255);
+  rightMotor->run(RELEASE);
+  vertMotor->setSpeed(255);
+  vertMotor->run(RELEASE);
+  boostMotor->setSpeed(255);
+  boostMotor->run(RELEASE);
+ error = ps2x.config_gamepad(13,11,10,12, true, true);   //GamePad(clock, command, attention, data, Pressures?, Rumble?) 
+ 
+ if(error == 0){
+   Serial.println("Found Controller, configured successful");
+   Serial.println("Try out all the buttons, X will vibrate the controller, faster as you press harder;");
+  Serial.println("holding L1 or R1 will print out the analog stick values.");
+  Serial.println("Go to www.billporter.info for updates and to report bugs.");
+ }
+   
+  else if(error == 1)
+   Serial.println("No controller found, check wiring, see readme.txt to enable debug. visit www.billporter.info for troubleshooting tips");
+   
+  else if(error == 2)
+   Serial.println("Controller found but not accepting commands. see readme.txt to enable debug. Visit www.billporter.info for troubleshooting tips");
+   
+  else if(error == 3)
+   Serial.println("Controller refusing to enter Pressures mode, may not support it. ");
+      
+   type = ps2x.readType(); 
+     switch(type) {
+       case 0:
+        Serial.println("Unknown Controller type");
+       break;
+       case 1:
+        Serial.println("DualShock Controller Found");
+       break;
+       case 2:
+         Serial.println("GuitarHero Controller Found");
+       break;
+     }
+  
+}
+
+void loop(){
+   /* You must Read Gamepad to get new values
+   Read GamePad and set vibration values
+   ps2x.read_gamepad(small motor on/off, larger motor strenght from 0-255)
+   if you don't enable the rumble, use ps2x.read_gamepad(); with no values
+   
+   you should call this at least once a second
+   */
+   
+ if(error == 1) 
+  return; 
+  
+ if(type == 2){ 
+   
+   ps2x.read_gamepad();          //read controller 
+   
+   if(ps2x.ButtonPressed(GREEN_FRET))
+     Serial.println("Green Fret Pressed");
+   if(ps2x.ButtonPressed(RED_FRET))
+     Serial.println("Red Fret Pressed");
+   if(ps2x.ButtonPressed(YELLOW_FRET))
+     Serial.println("Yellow Fret Pressed");
+   if(ps2x.ButtonPressed(BLUE_FRET))
+     Serial.println("Blue Fret Pressed");
+   if(ps2x.ButtonPressed(ORANGE_FRET))
+     Serial.println("Orange Fret Pressed");
+     
+
+    if(ps2x.ButtonPressed(STAR_POWER))
+     Serial.println("Star Power Command");
+    
+    if(ps2x.Button(UP_STRUM))          //will be TRUE as long as button is pressed
+     Serial.println("Up Strum");
+    if(ps2x.Button(DOWN_STRUM))
+     Serial.println("DOWN Strum");
+  
+ 
+    if(ps2x.Button(PSB_START))                   //will be TRUE as long as button is pressed
+         Serial.println("Start is being held");
+    if(ps2x.Button(PSB_SELECT))
+         Serial.println("Select is being held");
+
+    
+    if(ps2x.Button(ORANGE_FRET)) // print stick value IF TRUE
+    {
+        Serial.print("Wammy Bar Position:");
+        Serial.println(ps2x.Analog(WHAMMY_BAR), DEC); 
+    } 
+ }
+
+ else { //DualShock Controller
+  
+    ps2x.read_gamepad(false, vibrate);          //read controller and set large motor to spin at 'vibrate' speed
+    
+    
+
+    if(ps2x.Analog(PSS_LY) > 204){
+      leftMotor->run(FORWARD);
+      leftMotor->setSpeed(255);
+    }
+    else
+    if(ps2x.Analog(PSS_LY) > 153 and ps2x.Analog(PSS_LY) < 204){
+      leftMotor->run(FORWARD);
+      leftMotor->setSpeed(155);
+    }
+    else
+    if(ps2x.Analog(PSS_LY) > 102 and ps2x.Analog(PSS_LY) < 153){
+      leftMotor->run(RELEASE);
+    }
+    else
+    if(ps2x.Analog(PSS_LY) > 51 and ps2x.Analog(PSS_LY) < 102){
+      leftMotor->run(BACKWARD);
+      leftMotor->setSpeed(155);
+    }
+    else
+    if(ps2x.Analog(PSS_LY) > -1 and ps2x.Analog(PSS_LY) < 51){
+      leftMotor->run(BACKWARD);
+      leftMotor->setSpeed(255);
+    }
+
+
+
+    if(ps2x.Analog(PSS_RY) > 204){
+      rightMotor->run(FORWARD);
+      rightMotor->setSpeed(255);
+    }
+    else
+    if(ps2x.Analog(PSS_RY) > 153 and ps2x.Analog(PSS_RY) < 204){
+      rightMotor->run(FORWARD);
+      rightMotor->setSpeed(155);
+    }
+    else
+    if(ps2x.Analog(PSS_RY) > 102 and ps2x.Analog(PSS_RY) < 153){
+      rightMotor->run(RELEASE);
+    }
+    else
+    if(ps2x.Analog(PSS_RY) > 51 and ps2x.Analog(PSS_RY) < 102){
+      rightMotor->run(BACKWARD);
+      rightMotor->setSpeed(155);
+    }
+    else
+    if(ps2x.Analog(PSS_RY) > -1 and ps2x.Analog(PSS_RY) < 51){
+      rightMotor->run(BACKWARD);
+      rightMotor->setSpeed(255);
+    }
+    
+    if(ps2x.Button(PSB_R2) || ps2x.Button(PSB_L2)){
+//      rightMotor->run(FORWARD);
+//      rightMotor->setSpeed(255);
+//      leftMotor->run(FORWARD);
+//      leftMotor->setSpeed(255);
+      boostMotor->run(FORWARD);
+      boostMotor->setSpeed(255);
+    }
+    else{
+      boostMotor->run(RELEASE);
+    }
+
+
+
+
+if(ps2x.Button(PSB_L1)){
+  vertMotor->run(FORWARD);
+  vertMotor->setSpeed(255);
+}
+else
+if(ps2x.Button(PSB_R1)){
+  vertMotor->run(BACKWARD);
+  vertMotor->setSpeed(255);
+}
+else{
+  vertMotor->run(RELEASE);
+}
+
+
+
+
+
+    
+
+ }
+ 
+ Serial.println("Stick Values:");
+        Serial.print(ps2x.Analog(PSS_LY), DEC); //Left stick, Y axis. Other options: LX, RY, RX  
+        Serial.print(",");
+        
+        Serial.println(ps2x.Analog(PSS_RY), DEC); 
+        Serial.print(",");
+//        boostMotor->run(FORWARD);
+//        boostMotor->setSpeed(255);
+ delay(50);
+     
+}
